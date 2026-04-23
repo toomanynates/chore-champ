@@ -85,7 +85,7 @@ export default function ParentDashboard() {
             Parent Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Manage your family's chores and rewards
+            Manage your family&apos;s chores and rewards
           </p>
         </div>
       </header>

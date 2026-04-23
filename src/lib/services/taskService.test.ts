@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { collection, addDoc, getDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { addDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { createTask, getTaskById, getTasksByParent, getTasksForChild, isTaskDueToday } from './taskService';
 import { Task } from '@/lib/types';
 
@@ -58,7 +58,7 @@ describe('taskService', () => {
   });
 
   it('creates a task and returns the created task payload', async () => {
-    mockAddDoc.mockResolvedValueOnce({ id: 'task-id' } as any);
+    mockAddDoc.mockResolvedValueOnce({ id: 'task-id' });
 
     const result = await createTask('parent-1', sampleTaskData);
 
@@ -67,7 +67,7 @@ describe('taskService', () => {
   });
 
   it('returns null when task does not exist', async () => {
-    mockGetDoc.mockResolvedValueOnce({ exists: () => false } as any);
+    mockGetDoc.mockResolvedValueOnce({ exists: () => false, data: () => null });
 
     const result = await getTaskById('missing-id');
 
@@ -77,10 +77,10 @@ describe('taskService', () => {
 
   it('fetches tasks for a parent', async () => {
     mockGetDocs.mockResolvedValueOnce({
-      forEach: (callback: (doc: any) => void) => {
+      forEach: (callback) => {
         callback({ id: 'task-1', data: () => ({ ...sampleTaskData, createdAt: '', updatedAt: '' }) });
       },
-    } as any);
+    });
 
     const tasks = await getTasksByParent('parent-1');
 
@@ -92,10 +92,10 @@ describe('taskService', () => {
 
   it('fetches tasks for a child and only active tasks', async () => {
     mockGetDocs.mockResolvedValueOnce({
-      forEach: (callback: (doc: any) => void) => {
+      forEach: (callback) => {
         callback({ id: 'task-2', data: () => ({ ...sampleTaskData, createdAt: '', updatedAt: '' }) });
       },
-    } as any);
+    });
 
     const tasks = await getTasksForChild('child-1');
 

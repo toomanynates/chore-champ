@@ -13,30 +13,30 @@ export default function Tasks() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Get parentId from auth context
+        const response = await fetch('/api/tasks', {
+          headers: {
+            'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
+          },
+        });
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+        const data = await response.json();
+        setTasks(data);
+      } catch (err) {
+        setError('Failed to load tasks');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
-    try {
-      setIsLoading(true);
-      // TODO: Get parentId from auth context
-      const response = await fetch('/api/tasks', {
-        headers: {
-          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch tasks');
-      const data = await response.json();
-      setTasks(data);
-    } catch (err) {
-      setError('Failed to load tasks');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateTask = async (formData: any) => {
+  const handleCreateTask = async (formData: Task) => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/tasks', {
@@ -59,7 +59,7 @@ export default function Tasks() {
     }
   };
 
-  const handleUpdateTask = async (formData: any) => {
+  const handleUpdateTask = async (formData: Task) => {
     if (!editingTask) return;
     try {
       setIsLoading(true);

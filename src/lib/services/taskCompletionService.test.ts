@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addDoc, updateDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { addDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
 import { createTaskCompletion, approveTaskCompletion, rejectTaskCompletion, getPendingCompletions } from './taskCompletionService';
 
 vi.mock('@/lib/firebase/config', () => ({
@@ -29,7 +29,7 @@ describe('taskCompletionService', () => {
   });
 
   it('creates a pending task completion record', async () => {
-    mockAddDoc.mockResolvedValueOnce({ id: 'completion-id' } as any);
+    mockAddDoc.mockResolvedValueOnce({ id: 'completion-id' });
 
     const result = await createTaskCompletion('task-1', 'child-1');
 
@@ -57,10 +57,10 @@ describe('taskCompletionService', () => {
 
   it('fetches pending completions', async () => {
     mockGetDocs.mockResolvedValueOnce({
-      forEach: (callback: (doc: any) => void) => {
+      forEach: (callback) => {
         callback({ id: 'completion-1', data: () => ({ taskId: 'task-1', childId: 'child-1', status: 'pending' }) });
       },
-    } as any);
+    });
 
     const list = await getPendingCompletions('parent-1');
 

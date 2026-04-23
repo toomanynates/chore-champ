@@ -21,11 +21,11 @@ export default function ParentLogin() {
       setLoading(false);
       return;
     }
-
+    
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/parent');
-    } catch (err: any) {
+    } catch (err: unknown) { //28:19  error  Unexpected any. Specify a different type 
       setError(err.message || 'Login failed. Please try again.');
       console.error(err);
     } finally {
@@ -42,7 +42,7 @@ export default function ParentLogin() {
               Parent Login
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Sign in to manage your family's chores
+              Sign in to manage your family&apos;s chores
             </p>
           </div>
 
@@ -90,7 +90,7 @@ export default function ParentLogin() {
 
           <div className="mt-6 border-t border-gray-200 dark:border-slate-700 pt-6">
             <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <span className="text-blue-600 dark:text-blue-400 font-medium">
                 TODO: Link to signup
               </span>

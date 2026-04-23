@@ -15,32 +15,30 @@ export default function ChildStars() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
+
+        const ledgerRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}`);
+        if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
+        const ledgerData = await ledgerRes.json();
+        setLedger(ledgerData);
+
+        const totalRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}/total`);
+        if (!totalRes.ok) throw new Error('Failed to fetch star total');
+        const totalData = await totalRes.json();
+        setStarTotal(totalData.starTotal);
+      } catch (err) {
+        setError('Failed to load stars');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchData();
   }, []);
-
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-
-      // Fetch ledger
-      const ledgerRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}`);
-      if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
-      const ledgerData = await ledgerRes.json();
-      setLedger(ledgerData);
-
-      // Fetch star total
-      const totalRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}/total`);
-      if (!totalRes.ok) throw new Error('Failed to fetch star total');
-      const totalData = await totalRes.json();
-      setStarTotal(totalData.starTotal);
-    } catch (err) {
-      setError('Failed to load stars');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-slate-900 dark:to-slate-800">

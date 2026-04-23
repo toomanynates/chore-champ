@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, RepeatRule } from '@/lib/types';
+import { Task } from '@/lib/types';
+
+type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 
 interface TaskFormProps {
-  onSubmit: (task: any) => Promise<void>;
+  onSubmit: (task: TaskInput) => Promise<void>;
   onCancel: () => void;
-  initialTask?: Task;
+  initialTask?: Partial<TaskInput>;
   children?: string[];
   isLoading?: boolean;
 }
@@ -190,7 +192,7 @@ export function TaskForm({
                   ...prev,
                   repeatRule: {
                     ...prev.repeatRule,
-                    unit: e.target.value as any,
+                    unit: e.target.value as 'day' | 'week' | 'month' | 'year',
                   },
                 }))
               }

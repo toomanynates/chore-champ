@@ -23,25 +23,25 @@ export default function ChildTasks() {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
+
+        const response = await fetch(`/api/tasks/child/${SAMPLE_CHILD_ID}`);
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+        const data = await response.json();
+        setTasks(data);
+      } catch (err) {
+        setError('Failed to load tasks');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchTasks();
   }, []);
-
-  const fetchTasks = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-
-      const response = await fetch(`/api/tasks/child/${SAMPLE_CHILD_ID}`);
-      if (!response.ok) throw new Error('Failed to fetch tasks');
-      const data = await response.json();
-      setTasks(data);
-    } catch (err) {
-      setError('Failed to load tasks');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleMarkComplete = async (taskId: string) => {
     try {

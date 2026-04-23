@@ -39,9 +39,9 @@ export async function createTaskCompletion(
 
 export async function approveTaskCompletion(
   completionId: string,
-  childId: string,
-  taskId: string,
-  starValue: number
+  _childId: string,
+  _taskId: string,
+  _starValue: number
 ) {
   try {
     const completionRef = doc(db, TASK_COMPLETIONS_COLLECTION, completionId);
@@ -71,7 +71,7 @@ export async function rejectTaskCompletion(completionId: string) {
   }
 }
 
-export async function getPendingCompletions(parentId: string) {
+export async function getPendingCompletions(_parentId: string) {
   // TODO: Filter by parent's children
   try {
     const q = query(

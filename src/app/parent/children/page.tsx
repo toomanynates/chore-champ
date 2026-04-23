@@ -9,7 +9,7 @@ export default function Children() {
             Children
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Manage your children's profiles
+            Manage your children&apos;s profiles
           </p>
         </div>
       </header>

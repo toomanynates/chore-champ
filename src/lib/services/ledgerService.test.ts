@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { addDoc, getDocs, query, where } from 'firebase/firestore';
 import { createLedgerEntry, getChildStarTotal, getChildLedger } from './ledgerService';
 
 vi.mock('@/lib/firebase/config', () => ({
@@ -26,7 +26,7 @@ describe('ledgerService', () => {
   });
 
   it('creates a ledger entry and returns the created payload', async () => {
-    mockAddDoc.mockResolvedValueOnce({ id: 'ledger-id' } as any);
+    mockAddDoc.mockResolvedValueOnce({ id: 'ledger-id' });
 
     const result = await createLedgerEntry('child-1', 5, 'Good job', 'completion-1');
 
@@ -43,11 +43,11 @@ describe('ledgerService', () => {
 
   it('calculates total star balance without going below zero', async () => {
     mockGetDocs.mockResolvedValueOnce({
-      forEach: (callback: (doc: any) => void) => {
+      forEach: (callback) => {
         callback({ data: () => ({ delta: -5 }) });
         callback({ data: () => ({ delta: 2 }) });
       },
-    } as any);
+    });
 
     const total = await getChildStarTotal('child-1');
 
@@ -58,11 +58,11 @@ describe('ledgerService', () => {
 
   it('fetches ledger entries and sorts by newest first', async () => {
     mockGetDocs.mockResolvedValueOnce({
-      forEach: (callback: (doc: any) => void) => {
+      forEach: (callback) => {
         callback({ id: 'entry-1', data: () => ({ delta: 2, childId: 'child-1', reason: 'Bonus', createdAt: '2025-01-01T00:00:00.000Z' }) });
         callback({ id: 'entry-2', data: () => ({ delta: 1, childId: 'child-1', reason: 'Task', createdAt: '2025-01-02T00:00:00.000Z' }) });
       },
-    } as any);
+    });
 
     const entries = await getChildLedger('child-1');
 

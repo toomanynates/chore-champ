@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { Confetti } from '@/components/Confetti';
 import { StarBurst } from '@/components/StarBurst';
 
+const pickAnimationType = (): 'confetti' | 'starburst' =>
+  Math.random() > 0.4 ? 'confetti' : 'starburst';
+
 interface ChildTaskListProps {
   tasks: Task[];
   onMarkComplete: (taskId: string) => Promise<void>;
@@ -23,22 +26,24 @@ export function ChildTaskList({
   const [animationType, setAnimationType] = useState<'confetti' | 'starburst'>('confetti');
   const [burstPosition, setBurstPosition] = useState({ x: 0, y: 0 });
 
-  const handleMarkComplete = async (taskId: string, e?: React.MouseEvent) => {
+  const handleMarkComplete = async (taskId: string, e?: React.MouseEvent<HTMLButtonElement>) => {
     try {
       setCompletingId(taskId);
       
       // Get button position for star burst animation
-      if (e) {
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const handleBurst = (e: React.MouseEvent<HTMLElement>) =>
+      {
+        if (!e) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
         setBurstPosition({
           x: rect.left + rect.width / 2,
           y: rect.top + rect.height / 2,
         });
-      }
+      };
 
       // Randomly choose animation (60% confetti, 40% star burst)
-      const animation = Math.random() > 0.4 ? 'confetti' : 'starburst';
-      setAnimationType(animation as any);
+      setAnimationType(pickAnimationType());
       setShowAnimation(true);
 
       await onMarkComplete(taskId);

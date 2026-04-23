@@ -11,7 +11,7 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore';
-import { Task, RepeatRule } from '@/lib/types';
+import { Task } from '@/lib/types';
 
 const TASKS_COLLECTION = 'tasks';
 
@@ -106,7 +106,7 @@ export async function getTasksForChild(childId: string) {
   }
 }
 
-export function isTaskDueToday(task: Task, referenceDate: Date = new Date()): boolean {
+export function isTaskDueToday(task: Task): boolean {
   // TODO (v2): Implement complex repeat rule logic
   // For now, assume all active tasks are due today
   return task.active;

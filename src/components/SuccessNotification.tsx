@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 interface SuccessNotificationProps {
   show: boolean;
@@ -19,22 +19,19 @@ export function SuccessNotification({
   onDismiss,
   autoDismissMs = 3000,
 }: SuccessNotificationProps) {
-  const [visible, setVisible] = useState(show);
-
   useEffect(() => {
-    setVisible(show);
-
-    if (show && autoDismissMs > 0) {
-      const timer = setTimeout(() => {
-        setVisible(false);
-        onDismiss?.();
-      }, autoDismissMs);
-
-      return () => clearTimeout(timer);
+    if (!show || autoDismissMs <= 0) {
+      return;
     }
+
+    const timer = setTimeout(() => {
+      onDismiss?.();
+    }, autoDismissMs);
+
+    return () => clearTimeout(timer);
   }, [show, autoDismissMs, onDismiss]);
 
-  if (!visible) return null;
+  if (!show) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 animate-slide-in-bottom">
@@ -54,7 +51,6 @@ export function SuccessNotification({
           </div>
           <button
             onClick={() => {
-              setVisible(false);
               onDismiss?.();
             }}
             className="text-green-50 hover:text-white transition"

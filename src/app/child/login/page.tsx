@@ -45,7 +45,7 @@ export default function ChildLogin() {
                 onChange={(e) => setPin(e.target.value.slice(0, 6))}
                 placeholder="Enter PIN"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white text-lg text-center tracking-widest"
-                maxLength="6"
+                maxLength={6} //Type error: Type 'string' is not assignable to type 'number'.
               />
             </div>
 

@@ -23,55 +23,55 @@ export default function Ledger() {
   const [activeTab, setActiveTab] = useState<'overview' | 'pending'>('overview');
 
   useEffect(() => {
-    fetchData();
-  }, [selectedChildId]);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
+        // Fetch ledger
+        const ledgerRes = await fetch(`/api/ledger/${selectedChildId}`);
+        if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
+        const ledgerData = await ledgerRes.json();
+        setLedger(ledgerData);
 
-      // Fetch ledger
-      const ledgerRes = await fetch(`/api/ledger/${selectedChildId}`);
-      if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
-      const ledgerData = await ledgerRes.json();
-      setLedger(ledgerData);
+        // Fetch star total
+        const totalRes = await fetch(`/api/ledger/${selectedChildId}/total`);
+        if (!totalRes.ok) throw new Error('Failed to fetch star total');
+        const totalData = await totalRes.json();
+        setStarTotal(totalData.starTotal);
 
-      // Fetch star total
-      const totalRes = await fetch(`/api/ledger/${selectedChildId}/total`);
-      if (!totalRes.ok) throw new Error('Failed to fetch star total');
-      const totalData = await totalRes.json();
-      setStarTotal(totalData.starTotal);
+        // Fetch pending completions
+        const pendingRes = await fetch('/api/tasks/pending', {
+          headers: {
+            'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
+          },
+        });
+        if (!pendingRes.ok) throw new Error('Failed to fetch pending completions');
+        const pendingData = await pendingRes.json();
+        setPendingCompletions(pendingData);
 
-      // Fetch pending completions
-      const pendingRes = await fetch('/api/tasks/pending', {
-        headers: {
-          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-        },
-      });
-      if (!pendingRes.ok) throw new Error('Failed to fetch pending completions');
-      const pendingData = await pendingRes.json();
-      setPendingCompletions(pendingData);
-
-      // Fetch tasks for pending completions
-      const taskMap: { [key: string]: Task } = {};
-      for (const completion of pendingData) {
-        if (!taskMap[completion.taskId]) {
-          const taskRes = await fetch(`/api/tasks/fetch/${completion.taskId}`);
-          if (taskRes.ok) {
-            const taskData = await taskRes.json();
-            taskMap[completion.taskId] = taskData;
+        // Fetch tasks for pending completions
+        const taskMap: { [key: string]: Task } = {};
+        for (const completion of pendingData) {
+          if (!taskMap[completion.taskId]) {
+            const taskRes = await fetch(`/api/tasks/fetch/${completion.taskId}`);
+            if (taskRes.ok) {
+              const taskData = await taskRes.json();
+              taskMap[completion.taskId] = taskData;
+            }
           }
         }
+        setTasks(taskMap);
+      } catch (err) {
+        setError('Failed to load data');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
       }
-      setTasks(taskMap);
-    } catch (err) {
-      setError('Failed to load data');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchData();
+  }, [selectedChildId]);
 
   const handleAddManualEntry = async (delta: number, reason: string) => {
     try {
