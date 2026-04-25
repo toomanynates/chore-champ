@@ -21,12 +21,16 @@ export default function ParentLogin() {
       setLoading(false);
       return;
     }
-    
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/parent');
-    } catch (err: unknown) { //28:19  error  Unexpected any. Specify a different type 
-      setError(err.message || 'Login failed. Please try again.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed. Please try again.');
+      }
       console.error(err);
     } finally {
       setLoading(false);

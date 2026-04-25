@@ -6,23 +6,23 @@
 - [x] All tests passing: `npm run test`
 - [x] No TypeScript errors: `npm run build`
 - [x] Linting passes: `npm run lint`
-- [ ] Coverage report generated: `npm run coverage`
+- [x] Coverage report generated: `npm run coverage`
 
 ### 2. Firebase Setup
-- [ ] Firebase project created at [https://firebase.google.com](https://firebase.google.com)
-- [ ] Firestore Database initialized (production mode)
-- [ ] Authentication enabled (Email/Password provider)
-- [ ] Firestore security rules deployed (see `firestore.rules`)
-- [ ] Firebase config values copied from Project Settings
+- [x] Firebase project created at [https://firebase.google.com](https://firebase.google.com)
+- [x] Firestore Database initialized (production mode)
+- [x] Authentication enabled (Email/Password provider)
+- [x] Firestore security rules deployed (see `firestore.rules`)
+- [x] Firebase config values copied from Project Settings
 
 ### 3. Environment Variables
-- [ ] `.env.local` created with all Firebase credentials
-- [ ] All `NEXT_PUBLIC_FIREBASE_*` variables set correctly
-- [ ] `.env.local` added to `.gitignore` (already configured)
+- [x] `.env.local` created with all Firebase credentials
+- [x] All `NEXT_PUBLIC_FIREBASE_*` variables set correctly
+- [x] `.env.local` added to `.gitignore` (already configured)
 
 ### 4. Local Testing
-- [ ] Run `npm run build` successfully
-- [ ] Run `npm run dev` and test in browser
+- [x] Run `npm run build` successfully
+- [X] Run `npm run dev` and test in browser
 - [ ] Test parent login flow
 - [ ] Test child login flow
 - [ ] Test task creation and completion flow

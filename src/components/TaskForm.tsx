@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Task } from '@/lib/types';
 
-type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
+//type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
+export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 
 interface TaskFormProps {
   onSubmit: (task: TaskInput) => Promise<void>;

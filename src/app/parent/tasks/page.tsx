@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
+import { TaskInput } from '@/components/TaskForm';
 import { Task } from '@/lib/types';
 
 export default function Tasks() {
@@ -12,31 +13,31 @@ export default function Tasks() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setIsLoading(true);
-        // TODO: Get parentId from auth context
-        const response = await fetch('/api/tasks', {
-          headers: {
-            'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-          },
-        });
-        if (!response.ok) throw new Error('Failed to fetch tasks');
-        const data = await response.json();
-        setTasks(data);
-      } catch (err) {
-        setError('Failed to load tasks');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      // TODO: Get parentId from auth context
+      const response = await fetch('/api/tasks', {
+        headers: {
+          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+      const data = await response.json();
+      setTasks(data);
+    } catch (err) {
+      setError('Failed to load tasks');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTasks();
   }, []);
 
-  const handleCreateTask = async (formData: Task) => {
+  const handleCreateTask = async (formData: TaskInput) => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/tasks', {
@@ -59,7 +60,7 @@ export default function Tasks() {
     }
   };
 
-  const handleUpdateTask = async (formData: Task) => {
+  const handleUpdateTask = async (formData: TaskInput) => {
     if (!editingTask) return;
     try {
       setIsLoading(true);
