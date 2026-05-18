@@ -8,19 +8,27 @@
 - [x] Linting passes: `npm run lint`
 - [x] Coverage report generated: `npm run coverage`
 
-### 2. Firebase Setup
+### 2. Parent Profile & Authentication
+- [ ] Parent signup page created (`/parent/signup`)
+- [ ] Firebase Auth + Firestore integration for signup
+- [ ] ParentProfile type added to `src/lib/types`
+- [ ] Parent profile document created on signup
+- [ ] Signup link added to parent login page
+- [ ] Parent can create new account successfully
+
+### 3. Firebase Setup
 - [x] Firebase project created at [https://firebase.google.com](https://firebase.google.com)
 - [x] Firestore Database initialized (production mode)
 - [x] Authentication enabled (Email/Password provider)
 - [x] Firestore security rules deployed (see `firestore.rules`)
 - [x] Firebase config values copied from Project Settings
 
-### 3. Environment Variables
-- [x] `.env.local` created with all Firebase credentials
-- [x] All `NEXT_PUBLIC_FIREBASE_*` variables set correctly
-- [x] `.env.local` added to `.gitignore` (already configured)
+### 4. Environment Variables
+- [ ] `.env.local` created with all Firebase credentials
+- [ ] All `NEXT_PUBLIC_FIREBASE_*` variables set correctly
+- [ ] `.env.local` added to `.gitignore` (already configured)
 
-### 4. Local Testing
+### 5. Local Testing
 - [x] Run `npm run build` successfully
 - [X] Run `npm run dev` and test in browser
 - [ ] Test parent login flow

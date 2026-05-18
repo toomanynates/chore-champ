@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { LedgerView } from '@/components/LedgerView';
 import { ManualLedgerForm } from '@/components/ManualLedgerForm';
 import { PendingApprovals } from '@/components/PendingApprovals';
-import { LedgerEntry, TaskCompletion, Task } from '@/lib/types';
-
-// TODO: Get from auth context
-const SAMPLE_CHILDREN = [
-  { id: 'child-1', name: 'Alice' },
-  { id: 'child-2', name: 'Bob' },
-];
+import { ParentNav } from '@/components/ParentNav';
+import { LedgerEntry, TaskCompletion, Task, ParentProfile } from '@/lib/types';
+import { auth, db } from '@/lib/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import Link from 'next/link';
 
 export default function Ledger() {
-  const [selectedChildId, setSelectedChildId] = useState(SAMPLE_CHILDREN[0].id);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [children, setChildren] = useState<{ id: string; name: string }[]>([]);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [starTotal, setStarTotal] = useState(0);
   const [pendingCompletions, setPendingCompletions] = useState<TaskCompletion[]>([]);
@@ -21,35 +21,79 @@ export default function Ledger() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'pending'>('overview');
+  const [parentId, setParentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setParentId(user.uid);
+      } else {
+        setParentId(null);
+        setChildren([]);
+        setSelectedChildId(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch children from parent profile
+  useEffect(() => {
+    const fetchChildren = async () => {
+      if (!parentId) return;
+
+      try {
+        const parentRef = doc(db, 'users', parentId);
+        const parentSnap = await getDoc(parentRef);
+
+        if (parentSnap.exists()) {
+          const parentData = parentSnap.data() as ParentProfile;
+          // TODO: Fetch actual child profiles with names
+          // For now, use child UIDs as names
+          const childList = parentData.children.map((childId) => ({
+            id: childId,
+            name: childId, // TODO: fetch from child profile
+          }));
+          setChildren(childList);
+
+          // Set first child as selected, or null if no children
+          if (childList.length > 0) {
+            setSelectedChildId(childList[0].id);
+          } else {
+            setSelectedChildId(null);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching children:', err);
+      }
+    };
+
+    fetchChildren();
+  }, [parentId]);
 
   const fetchData = async () => {
+    if (!parentId) return;
     try {
       setIsLoading(true);
       setError('');
 
-      // Fetch ledger
       const ledgerRes = await fetch(`/api/ledger/${selectedChildId}`);
       if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
       const ledgerData = await ledgerRes.json();
       setLedger(ledgerData);
 
-      // Fetch star total
       const totalRes = await fetch(`/api/ledger/${selectedChildId}/total`);
       if (!totalRes.ok) throw new Error('Failed to fetch star total');
       const totalData = await totalRes.json();
       setStarTotal(totalData.starTotal);
 
-      // Fetch pending completions
       const pendingRes = await fetch('/api/tasks/pending', {
-        headers: {
-          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-        },
+        headers: { 'x-parent-id': parentId },
       });
       if (!pendingRes.ok) throw new Error('Failed to fetch pending completions');
       const pendingData = await pendingRes.json();
       setPendingCompletions(pendingData);
 
-      // Fetch tasks for pending completions
       const taskMap: { [key: string]: Task } = {};
       for (const completion of pendingData) {
         if (!taskMap[completion.taskId]) {
@@ -70,8 +114,10 @@ export default function Ledger() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, [selectedChildId]);
+    if (parentId) {
+      fetchData();
+    }
+  }, [selectedChildId, parentId]);
 
   const handleAddManualEntry = async (delta: number, reason: string) => {
     try {
@@ -147,20 +193,46 @@ export default function Ledger() {
     }
   };
 
-  const selectedChild = SAMPLE_CHILDREN.find((c) => c.id === selectedChildId);
+  const selectedChild = children.find((c) => c.id === selectedChildId);
+
+  if (!parentId) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+        <ParentNav />
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">Loading...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (children.length === 0) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+        <ParentNav />
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              No Children Yet
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Add children to your account to start tracking their chores and stars.
+            </p>
+            <Link
+              href="/parent/children"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition"
+            >
+              Add a Child
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
-      <header className="bg-white dark:bg-slate-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Stars & Ledger
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Track star rewards and transactions
-          </p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+      <ParentNav />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {error && (
@@ -175,7 +247,7 @@ export default function Ledger() {
             Select a Child
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {SAMPLE_CHILDREN.map((child) => (
+            {children.map((child) => (
               <button
                 key={child.id}
                 onClick={() => setSelectedChildId(child.id)}

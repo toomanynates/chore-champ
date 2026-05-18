@@ -4,7 +4,21 @@ import { useState, useEffect } from 'react';
 import { TaskForm } from '@/components/TaskForm';
 import { TaskList } from '@/components/TaskList';
 import { TaskInput } from '@/components/TaskForm';
+import { ParentNav } from '@/components/ParentNav';
 import { Task } from '@/lib/types';
+import { auth, db } from '@/lib/firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  Timestamp,
+} from 'firebase/firestore';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -12,19 +26,36 @@ export default function Tasks() {
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [parentId, setParentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setParentId(user.uid);
+      } else {
+        setParentId(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const fetchTasks = async () => {
+    if (!parentId) return;
+
     try {
       setIsLoading(true);
-      // TODO: Get parentId from auth context
-      const response = await fetch('/api/tasks', {
-        headers: {
-          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-        },
+      setError('');
+      const q = query(
+        collection(db, 'tasks'),
+        where('parentId', '==', parentId)
+      );
+      const querySnapshot = await getDocs(q);
+      const tasksData: Task[] = [];
+      querySnapshot.forEach((doc) => {
+        tasksData.push({ id: doc.id, ...doc.data() } as Task);
       });
-      if (!response.ok) throw new Error('Failed to fetch tasks');
-      const data = await response.json();
-      setTasks(data);
+      setTasks(tasksData);
     } catch (err) {
       setError('Failed to load tasks');
       console.error(err);
@@ -34,21 +65,23 @@ export default function Tasks() {
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (parentId) {
+      fetchTasks();
+    }
+  }, [parentId]);
 
   const handleCreateTask = async (formData: TaskInput) => {
+    if (!parentId) return;
+
     try {
       setIsLoading(true);
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-parent-id': 'parent-123', // TODO: Replace with actual parent ID
-        },
-        body: JSON.stringify(formData),
+      setError('');
+      await addDoc(collection(db, 'tasks'), {
+        ...formData,
+        parentId,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
-      if (!response.ok) throw new Error('Failed to create task');
       await fetchTasks();
       setShowForm(false);
       setEditingTask(undefined);
@@ -64,14 +97,11 @@ export default function Tasks() {
     if (!editingTask) return;
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/tasks/${editingTask.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      setError('');
+      await updateDoc(doc(db, 'tasks', editingTask.id), {
+        ...formData,
+        updatedAt: Timestamp.now(),
       });
-      if (!response.ok) throw new Error('Failed to update task');
       await fetchTasks();
       setShowForm(false);
       setEditingTask(undefined);
@@ -87,10 +117,8 @@ export default function Tasks() {
     if (!confirm('Are you sure you want to delete this task?')) return;
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete task');
+      setError('');
+      await deleteDoc(doc(db, 'tasks', taskId));
       await fetchTasks();
     } catch (err) {
       setError('Failed to delete task');
@@ -103,14 +131,11 @@ export default function Tasks() {
   const handleToggleActive = async (taskId: string, active: boolean) => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ active }),
+      setError('');
+      await updateDoc(doc(db, 'tasks', taskId), {
+        active,
+        updatedAt: Timestamp.now(),
       });
-      if (!response.ok) throw new Error('Failed to update task');
       await fetchTasks();
     } catch (err) {
       setError('Failed to update task');
@@ -131,9 +156,11 @@ export default function Tasks() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
-      <header className="bg-white dark:bg-slate-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+      <ParentNav />
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Tasks
@@ -151,9 +178,6 @@ export default function Tasks() {
             </button>
           )}
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
         {error && (
           <div className="bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg mb-6">
             {error}
