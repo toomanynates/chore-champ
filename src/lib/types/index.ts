@@ -1,5 +1,14 @@
 // Task-related TypeScript types and interfaces
 
+export interface ParentProfile {
+  id: string; // Firebase uid
+  email: string;
+  displayName: string;
+  role: 'parent';
+  children: string[]; // array of child UIDs
+  createdAt: string; // ISO timestamp
+}
+
 export interface RepeatRule {
   number: number;
   unit: 'day' | 'week' | 'month' | 'year';

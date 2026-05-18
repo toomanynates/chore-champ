@@ -71,18 +71,33 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
 
 export async function getTasksByParent(parentId: string) {
   try {
+    console.log('[getTasksByParent] Starting query for parentId:', parentId);
+    console.log('[getTasksByParent] TASKS_COLLECTION:', TASKS_COLLECTION);
+    console.log('[getTasksByParent] db instance:', db ? 'initialized' : 'NOT initialized');
+    
     const q = query(
       collection(db, TASKS_COLLECTION),
       where('parentId', '==', parentId)
     );
+    console.log('[getTasksByParent] Query object created successfully');
+    
     const querySnapshot = await getDocs(q);
+    console.log('[getTasksByParent] Got snapshot, docs count:', querySnapshot.size);
+    
     const tasks: Task[] = [];
     querySnapshot.forEach((doc) => {
       tasks.push({ id: doc.id, ...doc.data() } as Task);
     });
+    
+    console.log('[getTasksByParent] Returning', tasks.length, 'tasks');
     return tasks;
   } catch (error) {
     console.error('Error fetching tasks:', error);
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     throw error;
   }
 }

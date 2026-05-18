@@ -5,6 +5,7 @@ import { getTasksByParent, createTask, updateTask, deleteTask } from '@/lib/serv
 export async function GET(request: NextRequest) {
   try {
     const parentId = request.headers.get('x-parent-id');
+    console.log('[API GET /tasks] parentId:', parentId);
     
     if (!parentId) {
       return NextResponse.json(
@@ -13,12 +14,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('[API GET /tasks] Calling getTasksByParent...');
     const tasks = await getTasksByParent(parentId);
+    console.log('[API GET /tasks] Success, returning tasks');
     return NextResponse.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error details:', errorMessage);
     return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
+      { error: 'Failed to fetch tasks', details: errorMessage },
       { status: 500 }
     );
   }

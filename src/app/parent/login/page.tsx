@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ParentLogin() {
   const [email, setEmail] = useState('');
@@ -95,9 +96,12 @@ export default function ParentLogin() {
           <div className="mt-6 border-t border-gray-200 dark:border-slate-700 pt-6">
             <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
               Don&apos;t have an account?{' '}
-              <span className="text-blue-600 dark:text-blue-400 font-medium">
-                TODO: Link to signup
-              </span>
+              <Link
+                href="/parent/signup"
+                className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+              >
+                Create one here
+              </Link>
             </p>
           </div>
         </div>
