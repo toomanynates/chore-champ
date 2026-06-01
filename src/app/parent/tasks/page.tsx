@@ -13,6 +13,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -21,7 +22,13 @@ import {
 } from 'firebase/firestore';
 
 export default function Tasks() {
+  interface Assignee {
+    id: string;
+    label: string;
+  }
+
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [assignees, setAssignees] = useState<Assignee[]>([{ id: 'me', label: 'Me' }]);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [isLoading, setIsLoading] = useState(false);
@@ -64,9 +71,54 @@ export default function Tasks() {
     }
   };
 
+  const fetchAssignees = async () => {
+    if (!parentId) return;
+
+    try {
+      setIsLoading(true);
+      setError('');
+
+      const parentDocSnap = await getDoc(doc(db, 'users', parentId));
+      if (!parentDocSnap.exists()) {
+        setAssignees([{ id: 'me', label: 'Me' }]);
+        return;
+      }
+
+      const parentData = parentDocSnap.data();
+      const childrenIds: string[] = Array.isArray(parentData.children)
+        ? parentData.children
+        : [];
+
+      const childProfiles = await Promise.all(
+        childrenIds.map(async (childId) => {
+          const childDoc = await getDoc(doc(db, 'users', childId));
+          if (!childDoc.exists()) return null;
+          const childData = childDoc.data();
+          return {
+            id: childId,
+            label: childData.displayName || childId,
+          };
+        })
+      );
+
+      setAssignees([
+        { id: 'me', label: 'Me' },
+        ...childProfiles.filter(
+          (child): child is Assignee => child !== null
+        ),
+      ]);
+    } catch (err) {
+      setError('Failed to load assignees');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (parentId) {
       fetchTasks();
+      fetchAssignees();
     }
   }, [parentId]);
 
@@ -172,7 +224,7 @@ export default function Tasks() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition"
+              className="btn btn-primary"
             >
               + New Task
             </button>
@@ -193,6 +245,7 @@ export default function Tasks() {
               onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
               onCancel={handleCancelForm}
               initialTask={editingTask}
+              assignees={assignees}
               isLoading={isLoading}
             />
           </div>
@@ -200,6 +253,7 @@ export default function Tasks() {
 
         <TaskList
           tasks={tasks}
+          assignees={assignees}
           onEdit={handleEditTask}
           onDelete={handleDeleteTask}
           onToggleActive={handleToggleActive}

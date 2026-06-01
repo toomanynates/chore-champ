@@ -6,11 +6,16 @@ import { Task } from '@/lib/types';
 //type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 
+interface Assignee {
+  id: string;
+  label: string;
+}
+
 interface TaskFormProps {
   onSubmit: (task: TaskInput) => Promise<void>;
   onCancel: () => void;
   initialTask?: Partial<TaskInput>;
-  children?: string[];
+  assignees?: Assignee[];
   isLoading?: boolean;
 }
 
@@ -33,7 +38,7 @@ export function TaskForm({
   onSubmit,
   onCancel,
   initialTask,
-  children = [],
+  assignees = [],
   isLoading = false,
 }: TaskFormProps) {
   const [formData, setFormData] = useState({
@@ -233,27 +238,29 @@ export function TaskForm({
         )}
       </div>
 
-      {/* Assign to Children */}
+      {/* Assign to Assignees */}
       <div className="space-y-4 border-t border-gray-200 dark:border-slate-700 pt-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Assign to Children
+          Assigned to
         </h3>
         <div className="space-y-2">
-          {children.map((childId) => (
-            <label key={childId} className="flex items-center gap-2">
+          {assignees.map((assignee) => (
+            <label key={assignee.id} className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={formData.assignedChildrenIds.includes(childId)}
-                onChange={() => handleChildToggle(childId)}
+                checked={formData.assignedChildrenIds.includes(assignee.id)}
+                onChange={() => handleChildToggle(assignee.id)}
                 className="w-4 h-4 rounded border-gray-300 dark:border-slate-600"
               />
-              <span className="text-gray-700 dark:text-gray-300">{childId}</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                {assignee.label}
+              </span>
             </label>
           ))}
         </div>
-        {children.length === 0 && (
+        {assignees.length === 0 && (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            TODO: Load children from database
+            No assignees available yet.
           </p>
         )}
       </div>

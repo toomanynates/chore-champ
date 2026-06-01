@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { LedgerView } from '@/components/LedgerView';
 import { LedgerEntry } from '@/lib/types';
 
-// TODO: Get from auth context
-const SAMPLE_CHILD_ID = 'child-1';
-const SAMPLE_CHILD_NAME = 'Alice';
+// Get child id from authenticated user
+const SAMPLE_CHILD_NAME = 'You';
 
 export default function ChildStars() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
@@ -15,29 +15,45 @@ export default function ChildStars() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        setError('');
+    let unsub: (() => void) | null = null;
 
-        const ledgerRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}`);
-        if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
-        const ledgerData = await ledgerRes.json();
-        setLedger(ledgerData);
+    const init = () => {
+      const auth = getAuth();
+      unsub = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          setError('Not signed in');
+          setIsLoading(false);
+          return;
+        }
 
-        const totalRes = await fetch(`/api/ledger/${SAMPLE_CHILD_ID}/total`);
-        if (!totalRes.ok) throw new Error('Failed to fetch star total');
-        const totalData = await totalRes.json();
-        setStarTotal(totalData.starTotal);
-      } catch (err) {
-        setError('Failed to load stars');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+        const childId = user.uid;
+        try {
+          setIsLoading(true);
+          setError('');
+
+          const ledgerRes = await fetch(`/api/ledger/${childId}`);
+          if (!ledgerRes.ok) throw new Error('Failed to fetch ledger');
+          const ledgerData = await ledgerRes.json();
+          setLedger(ledgerData);
+
+          const totalRes = await fetch(`/api/ledger/${childId}/total`);
+          if (!totalRes.ok) throw new Error('Failed to fetch star total');
+          const totalData = await totalRes.json();
+          setStarTotal(totalData.starTotal);
+        } catch (err) {
+          setError('Failed to load stars');
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      });
     };
 
-    fetchData();
+    init();
+
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   return (

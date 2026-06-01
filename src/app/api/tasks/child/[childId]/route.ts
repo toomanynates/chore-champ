@@ -18,9 +18,11 @@ export async function GET(
     const tasks = await getTasksForChild(childId);
     return NextResponse.json(tasks);
   } catch (error) {
-    console.error('Error fetching child tasks:', error);
+    console.error('Error fetching child tasks:', error instanceof Error ? error.message : error);
+    console.error(error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: 'Failed to fetch tasks' },
+      { error: 'Failed to fetch tasks', details: message },
       { status: 500 }
     );
   }

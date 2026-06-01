@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { ChildTaskList } from '@/components/ChildTaskList';
 import { SuccessNotification } from '@/components/SuccessNotification';
 import { Task } from '@/lib/types';
+import { getTasksForChild } from '@/lib/services/taskService';
+import { createTaskCompletion } from '@/lib/services/taskCompletionService';
 
-// TODO: Get from auth context
-const SAMPLE_CHILD_ID = 'child-1';
+// Get child id from authenticated user
 
 interface CompletedTask {
   taskId: string;
@@ -23,46 +25,54 @@ export default function ChildTasks() {
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError('');
+    let unsub: (() => void) | null = null;
 
-        const response = await fetch(`/api/tasks/child/${SAMPLE_CHILD_ID}`);
-        if (!response.ok) throw new Error('Failed to fetch tasks');
-        const data = await response.json();
-        setTasks(data);
-      } catch (err) {
-        setError('Failed to load tasks');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+    const init = () => {
+      const auth = getAuth();
+      unsub = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          setError('Not signed in');
+          setIsLoading(false);
+          return;
+        }
+
+        const childId = user.uid;
+        try {
+          setIsLoading(true);
+          setError('');
+
+          const data = await getTasksForChild(childId);
+          setTasks(data);
+        } catch (err) {
+          setError('Failed to load tasks');
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      });
     };
 
-    fetchTasks();
+    init();
+
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   const handleMarkComplete = async (taskId: string) => {
     try {
       setIsLoading(true);
-      
+
       // Find the task to get its details
       const completedTask = tasks.find((t) => t.id === taskId);
       if (!completedTask) throw new Error('Task not found');
 
-      const response = await fetch('/api/tasks/complete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          taskId,
-          childId: SAMPLE_CHILD_ID,
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to mark task complete');
-      
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error('Not authenticated');
+
+      await createTaskCompletion(taskId, currentUser.uid);
+
       // Store completed task info for notification
       setLastCompletedTask({
         taskId,

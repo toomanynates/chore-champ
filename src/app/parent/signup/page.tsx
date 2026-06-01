@@ -50,9 +50,10 @@ export default function ParentSignup() {
 
     try {
       // Create Firebase Auth user
+      const normalizedEmail = formData.email.trim().toLowerCase();
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
+        normalizedEmail,
         formData.password
       );
 
@@ -60,7 +61,7 @@ export default function ParentSignup() {
       const uid = userCredential.user.uid;
       await setDoc(doc(db, 'users', uid), {
         id: uid,
-        email: formData.email,
+        email: normalizedEmail,
         displayName: formData.displayName,
         role: 'parent',
         children: [],

@@ -17,14 +17,16 @@ export default function ParentLogin() {
     setError('');
     setLoading(true);
 
-    if (!email || !password) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
       setError('Please enter email and password');
       setLoading(false);
       return;
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, normalizedEmail, password);
       router.push('/parent');
     } catch (err: unknown) {
       if (err instanceof Error) {

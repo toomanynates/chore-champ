@@ -104,15 +104,21 @@ export async function getTasksByParent(parentId: string) {
 
 export async function getTasksForChild(childId: string) {
   try {
+    // Some Firestore deployments require a composite index for combining
+    // `array-contains` with another filter. To avoid requiring a composite
+    // index during development we fetch active tasks and filter client-side.
     const q = query(
       collection(db, TASKS_COLLECTION),
-      where('assignedChildrenIds', 'array-contains', childId),
       where('active', '==', true)
     );
     const querySnapshot = await getDocs(q);
     const tasks: Task[] = [];
-    querySnapshot.forEach((doc) => {
-      tasks.push({ id: doc.id, ...doc.data() } as Task);
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const assigned: string[] = Array.isArray(data.assignedChildrenIds) ? data.assignedChildrenIds : [];
+      if (assigned.includes(childId)) {
+        tasks.push({ id: docSnap.id, ...data } as Task);
+      }
     });
     return tasks;
   } catch (error) {

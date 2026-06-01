@@ -9,6 +9,17 @@ export interface ParentProfile {
   createdAt: string; // ISO timestamp
 }
 
+export interface ChildProfile {
+  id: string;
+  parentId: string;
+  email: string | null;
+  authEmail: string | null;
+  displayName: string;
+  age?: number;
+  role: 'child';
+  createdAt: string; // ISO timestamp
+}
+
 export interface RepeatRule {
   number: number;
   unit: 'day' | 'week' | 'month' | 'year';

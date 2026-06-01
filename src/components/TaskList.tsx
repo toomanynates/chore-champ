@@ -2,8 +2,14 @@
 
 import { Task } from '@/lib/types';
 
+interface Assignee {
+  id: string;
+  label: string;
+}
+
 interface TaskListProps {
   tasks: Task[];
+  assignees?: Assignee[];
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onToggleActive: (taskId: string, active: boolean) => void;
@@ -12,11 +18,16 @@ interface TaskListProps {
 
 export function TaskList({
   tasks,
+  assignees = [],
   onEdit,
   onDelete,
   onToggleActive,
   isLoading = false,
 }: TaskListProps) {
+  const assigneeLookup = Object.fromEntries(
+    assignees.map((assignee) => [assignee.id, assignee.label])
+  );
+
   if (tasks.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-8 text-center">
@@ -78,14 +89,19 @@ export function TaskList({
                   Every {task.repeatRule.number} {task.repeatRule.unit}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                  {task.assignedChildrenIds.length} child
-                  {task.assignedChildrenIds.length !== 1 ? 'ren' : ''}
+                  {task.assignedChildrenIds.length > 0 ? (
+                    task.assignedChildrenIds
+                      .map((id) => assigneeLookup[id] || id)
+                      .join(', ')
+                  ) : (
+                    'Unassigned'
+                  )}
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
                     onClick={() => onToggleActive(task.id, !task.active)}
                     disabled={isLoading}
-                    className={`px-3 py-1 text-sm rounded-lg transition ${
+                    className={`btn btn-sm ${
                       task.active
                         ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
@@ -96,14 +112,14 @@ export function TaskList({
                   <button
                     onClick={() => onEdit(task)}
                     disabled={isLoading}
-                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition disabled:opacity-50"
+                    className="btn btn-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => onDelete(task.id)}
                     disabled={isLoading}
-                    className="px-3 py-1 text-sm bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition disabled:opacity-50"
+                    className="btn btn-sm bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-800"
                   >
                     Delete
                   </button>

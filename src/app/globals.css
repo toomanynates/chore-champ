@@ -92,3 +92,47 @@ body {
   animation: slide-in-bottom 0.4s ease-out;
 }
 
+/* Shared button base class */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #1f2937;
+}
+
+.btn-destructive {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
