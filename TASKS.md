@@ -11,6 +11,8 @@
 
 ---
 
+Fake creds: a-dad c@co.com 123456
+
 Parent UI work:
 [ ] Get Parent Stars page working
 [ ] Get Parent Notifications page working
